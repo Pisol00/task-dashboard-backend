@@ -75,7 +75,7 @@ That dev server proxies `/api/*` here.
 ## Getting Started
 
 ```bash
-# 1. Install
+# 1. Install (also runs `prisma generate` via the postinstall hook)
 npm install
 
 # 2. Env
@@ -93,6 +93,9 @@ npm run dev
 ```
 
 API is now at `http://localhost:3000/api/*`. The frontend Vite proxy targets this URL.
+
+> If you ever change `prisma/schema.prisma` without reinstalling, run
+> `npm run db:generate` to refresh the generated Prisma client.
 
 ### Scripts
 
