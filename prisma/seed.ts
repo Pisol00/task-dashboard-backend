@@ -105,14 +105,19 @@ async function main() {
   }
 
   console.log('[seed] inserting metric points...')
-  const today = new Date().toISOString().slice(0, 10)
-  const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10)
-  for (const date of [today, yesterday]) {
+  const DAYS_BACK = 30
+  const DAYS_FORWARD = 7
+  const totalDays = DAYS_BACK + 1 + DAYS_FORWARD
+  const dates: string[] = []
+  for (let offset = -DAYS_BACK; offset <= DAYS_FORWARD; offset++) {
+    dates.push(new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10))
+  }
+  for (const date of dates) {
     await prisma.metricPoint.createMany({ data: generateMetricPoints(date) })
   }
 
   console.log(
-    `[seed] done: ${USERS.length} users, ${TASKS.length} tasks, 48 metric points (2 days)`,
+    `[seed] done: ${USERS.length} users, ${TASKS.length} tasks, ${totalDays * 24} metric points (${totalDays} days)`,
   )
 }
 
