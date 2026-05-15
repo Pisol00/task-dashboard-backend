@@ -19,6 +19,9 @@ function buildBaseWhere(query: TaskListQuery): Prisma.TaskWhereInput {
   if (query.priority && query.priority !== 'All') {
     where.priority = db.priority(query.priority)
   }
+  if (query.tag && query.tag !== 'All') {
+    where.tag = db.tag(query.tag)
+  }
   return where
 }
 
