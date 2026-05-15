@@ -8,6 +8,7 @@ export const taskListQuerySchema = z.object({
   q: z.string().optional(),
   priority: z.union([z.enum(PRIORITY), z.literal('All')]).optional(),
   status: z.union([z.enum(STATUS), z.literal('All')]).optional(),
+  tag: z.union([z.enum(TAG), z.literal('All')]).optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(50).default(3),
 })
