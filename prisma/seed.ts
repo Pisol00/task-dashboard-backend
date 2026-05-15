@@ -51,8 +51,34 @@ const TASKS: SeedTask[] = [
   { id: 't20', title: 'PDF export branding', description: 'Include logo and timestamp on exported chart PDF.', tag: 'FEATURE', priority: 'HIGH', status: 'IN_PROGRESS', progress: 55, dueDate: '2026-05-26', assigneeIds: ['u2', 'u3', 'u5'] },
 ]
 
+function seededRandom(seed: number): () => number {
+  let state = seed
+  return () => {
+    state = (state * 9301 + 49297) % 233280
+    return state / 233280
+  }
+}
+
+function generateMetricPoints(date: string) {
+  const rand = seededRandom(date.split('-').reduce((acc, p) => acc + Number(p), 0))
+  return Array.from({ length: 24 }, (_, hour) => {
+    const t = hour / 23
+    const greenBase = 50 + 30 * Math.sin(t * Math.PI * 2)
+    const orangeBase = 70 * Math.sin(t * Math.PI * 2 + Math.PI / 4)
+    const blueBase = 5 + 3 * Math.sin(t * Math.PI * 3)
+    return {
+      date: new Date(`${date}T00:00:00Z`),
+      hour,
+      green: Math.max(0, Math.min(100, greenBase + (rand() - 0.5) * 20)),
+      orange: Math.max(-100, Math.min(100, orangeBase + (rand() - 0.5) * 30)),
+      blue: Math.max(0, Math.min(10, blueBase + (rand() - 0.5) * 2)),
+    }
+  })
+}
+
 async function main() {
   console.log('[seed] resetting tables...')
+  await prisma.metricPoint.deleteMany()
   await prisma.task.deleteMany()
   await prisma.user.deleteMany()
 
@@ -78,7 +104,16 @@ async function main() {
     })
   }
 
-  console.log(`[seed] done: ${USERS.length} users, ${TASKS.length} tasks`)
+  console.log('[seed] inserting metric points...')
+  const today = new Date().toISOString().slice(0, 10)
+  const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10)
+  for (const date of [today, yesterday]) {
+    await prisma.metricPoint.createMany({ data: generateMetricPoints(date) })
+  }
+
+  console.log(
+    `[seed] done: ${USERS.length} users, ${TASKS.length} tasks, 48 metric points (2 days)`,
+  )
 }
 
 main()
