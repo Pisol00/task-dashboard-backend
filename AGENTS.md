@@ -50,7 +50,7 @@ Base path: `/api`
 ### Tasks
 
 ```
-GET    /api/tasks?q=&priority=&status=&page=&limit=
+GET    /api/tasks?q=&priority=&status=&tag=&page=&limit=
   → { data: Task[], page, limit, total, totalPages }
 
 GET    /api/tasks/:id        → Task
@@ -60,7 +60,7 @@ DELETE /api/tasks/:id        → 204
 ```
 
 - `q` matches title case-insensitively
-- `priority` and `status` accept `"All"` to skip filtering
+- `priority`, `status`, `tag` accept `"All"` to skip filtering
 - All filters AND-combined
 - **Pagination** is _per-status_: `limit` = max items per status, board returns up to `3 × limit` items (matches FE's TaskBoard layout). `totalPages` derived from busiest status.
 
@@ -76,7 +76,10 @@ GET /api/users → User[]
 GET /api/metrics?date=YYYY-MM-DD → { date, points: MetricPoint[] }
 ```
 
-`points` has 24 entries (hour 0-23) with `green` (0-100), `orange` (-100 to 100), `blue` (0-10).
+- `date` defaults to today when omitted
+- `points` always has 24 entries (hour 0-23) with `green` (0-100), `orange` (-100 to 100), `blue` (0-10)
+- Missing rows are filled with `0` so the chart never breaks on empty days
+- Seed covers 38 days: -30 / today / +7 (see `prisma/seed.ts`)
 
 ### Wire format
 
@@ -125,10 +128,14 @@ task-dashboard-backend/
 Every feature folder has `routes → controller → service → schema → mapper`:
 
 - **routes**: Express Router. Mount middleware (`validate(...)`), call controller.
-- **controller**: parse req, call service, send response. No business logic.
+- **controller**: parse req, call service, send response. No business logic. Reads validated input via `getValidated(res, 'query'|'params'|'body')`.
 - **service**: Prisma queries + domain logic. Pure (no Express types).
 - **schema**: zod schemas for body/query/params.
 - **mapper**: convert Prisma rows → wire types (and vice versa for inputs).
+
+### Express 5 compatibility
+
+`req.query` and `req.params` are **read-only getters** in Express 5, so we cannot mutate them after parsing. The `validate()` middleware therefore stashes parsed values on `res.locals.validated.{body,query,params}`, and controllers read them with the `getValidated()` helper.
 
 ### Rules
 
