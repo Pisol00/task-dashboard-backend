@@ -2,6 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import { env } from './config/env.js'
 import { errorHandler } from './middlewares/errorHandler.js'
+import { taskRouter } from './modules/tasks/task.routes.js'
+import { userRouter } from './modules/users/user.routes.js'
 
 export function createApp() {
   const app = express()
@@ -17,6 +19,9 @@ export function createApp() {
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() })
   })
+
+  app.use('/api/tasks', taskRouter)
+  app.use('/api/users', userRouter)
 
   app.use(errorHandler)
 
