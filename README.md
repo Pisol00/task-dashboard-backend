@@ -2,7 +2,7 @@
 
 REST API powering the TaskFlow dashboard.
 
-Frontend lives in a sibling repo: [`task-dashboard-frontend`](../task-dashboard-frontend).
+Frontend lives in a sibling repo: [`task-dashboard-frontend`](https://github.com/Pisol00/task-dashboard-frontend).
 That dev server proxies `/api/*` here.
 
 ---
